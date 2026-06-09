@@ -13,9 +13,11 @@ $env:GIT_TERMINAL_PROMPT = "0"
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+# ハッシュ未取得の場合は静かに終了
 $invalid = ($CommitHash -eq "") -or ($CommitHash -eq '$REFS') -or ($CommitHash -eq '$SHA')
 if ($invalid) { exit }
 
+# コミット情報取得
 $commitInfo = git -c i18n.logOutputEncoding=utf-8 log -1 --format="%h  %ai  %an%n%s" $CommitHash 2>&1
 if ($LASTEXITCODE -ne 0) {
     [System.Windows.Forms.MessageBox]::Show(
@@ -25,7 +27,13 @@ if ($LASTEXITCODE -ne 0) {
     exit
 }
 
-$fileList = git diff-tree --no-commit-id -r --name-status $CommitHash 2>&1
+# ファイル一覧取得（②日本語ファイル名対応）
+$fileList = git -c core.quotepath=false diff-tree --no-commit-id -r --name-status $CommitHash 2>&1
+
+# ①マージコミット対応：差分が空の場合は第1親との差分にフォールバック
+if (-not ($fileList | Where-Object { $_ -match "^[AMDRC]" })) {
+    $fileList = git -c core.quotepath=false diff "${CommitHash}^1" $CommitHash --name-status 2>&1
+}
 
 $added = @(); $modified = @(); $deleted = @(); $renamed = @(); $other = @()
 
@@ -53,11 +61,11 @@ $lines += $commitInfo
 $lines += ""
 $lines += "変更ファイル数: $count"
 $lines += ""
-if ($added)    { $lines += "=== 追加 ($($added.Count)) ===";      $lines += $added    | % { "  [追加] $_" }; $lines += "" }
-if ($modified) { $lines += "=== 変更 ($($modified.Count)) ===";   $lines += $modified | % { "  [変更] $_" }; $lines += "" }
-if ($deleted)  { $lines += "=== 削除 ($($deleted.Count)) ===";    $lines += $deleted  | % { "  [削除] $_" }; $lines += "" }
+if ($added)    { $lines += "=== 追加 ($($added.Count)) ===";       $lines += $added    | % { "  [追加] $_" }; $lines += "" }
+if ($modified) { $lines += "=== 変更 ($($modified.Count)) ===";    $lines += $modified | % { "  [変更] $_" }; $lines += "" }
+if ($deleted)  { $lines += "=== 削除 ($($deleted.Count)) ===";     $lines += $deleted  | % { "  [削除] $_" }; $lines += "" }
 if ($renamed)  { $lines += "=== リネーム ($($renamed.Count)) ==="; $lines += $renamed  | % { "  [移動] $_" }; $lines += "" }
-if ($other)    { $lines += "=== その他 ===";                       $lines += $other    | % { "  [　　] $_" }; $lines += "" }
+if ($other)    { $lines += "=== その他 ===";                        $lines += $other    | % { "  [　　] $_" }; $lines += "" }
 
 $message = $lines -join "`r`n"
 $plainList = ($allFiles | Where-Object { $_ }) -join "`r`n"
