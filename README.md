@@ -55,7 +55,7 @@ a3f9c12  2026-06-09 10:22:11  山田
 | メニューキャプション | `コミットのファイル一覧` |
 | スクリプトを開く | `powershell` |
 | パラメーター | `-WindowStyle Hidden -ExecutionPolicy Bypass -File "インストール先\get_commit_files.ps1" "$REPO" "$SHA"` |
-| バックグラウンドで実行する | チェックなし |
+| バックグラウンドで実行する | チェックあり |
 
 ---
 
