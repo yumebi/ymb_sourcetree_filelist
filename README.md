@@ -103,3 +103,9 @@ chmod +x setup_mac.sh get_commit_files_mac.sh
 |----|-----------|
 | Windows | Windows 11 / PowerShell 5.x |
 | Mac | macOS Sequoia / zsh・bash |
+
+---
+
+## ライセンス
+
+MIT License © 2026 ymb
