@@ -11,20 +11,33 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: PowerShell構文チェック
+      - name: PowerShell構文・静的解析チェック
         shell: pwsh
         run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
           $files = Get-ChildItem -Filter *.ps1 -Recurse
           $hasError = $false
           foreach ($f in $files) {
-            $errors = $null
-            [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$errors) | Out-Null
-            if ($errors.Count -gt 0) {
-              Write-Host "NG: $($f.Name)"
-              $errors | ForEach-Object { Write-Host $_.Message }
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+              Write-Host "Parse NG: $($f.Name)"
+              $parseErrors | ForEach-Object { Write-Host $_.Message }
               $hasError = $true
             } else {
-              Write-Host "OK: $($f.Name)"
+              Write-Host "Parse OK: $($f.Name)"
+            }
+
+            $errResults = Invoke-ScriptAnalyzer -Path $f.FullName -Severity Error
+            if ($errResults) {
+              Write-Host "PSScriptAnalyzer ERROR: $($f.Name)"
+              $errResults | Format-Table -AutoSize | Out-String | Write-Host
+              $hasError = $true
+            }
+            $warnResults = Invoke-ScriptAnalyzer -Path $f.FullName -Severity Warning
+            if ($warnResults) {
+              Write-Host "PSScriptAnalyzer WARNING (参考): $($f.Name)"
+              $warnResults | Format-Table -AutoSize | Out-String | Write-Host
             }
           }
           if ($hasError) { exit 1 }
@@ -33,15 +46,19 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bash構文チェック
+      - name: Bash構文・shellcheckチェック
         run: |
           status=0
           for f in $(find . -name "*.sh"); do
             if bash -n "$f"; then
-              echo "OK: $f"
+              echo "Parse OK: $f"
             else
-              echo "NG: $f"
+              echo "Parse NG: $f"
               status=1
             fi
+            echo "--- shellcheck (severity=error) ---"
+            shellcheck --severity=error "$f" || status=1
+            echo "--- shellcheck (参考: all) ---"
+            shellcheck "$f" || true
           done
           exit $status

@@ -1,10 +1,12 @@
 # ymb_sourcetree_filelist
 
-現在のバージョン: v1.0.0（[CHANGELOG](CHANGELOG.md) / [Releases](https://github.com/yumebi/ymb_sourcetree_filelist/releases)）
+現在のバージョン: v1.1.0（[CHANGELOG](CHANGELOG.md) / [Releases](https://github.com/yumebi/ymb_sourcetree_filelist/releases)）
 
 Sourcetreeのカスタムアクションとして登録する、コミット変更ファイル一覧表示ツールです。  
 コミット履歴で任意のコミットを右クリックするだけで、変更されたファイルの一覧をダイアログ表示します。  
 表示と同時にファイル名をクリップボードにコピーします。
+
+UIは日本語 / English の切り替えに対応しています（セットアップ時に選択）。
 
 ---
 
@@ -37,8 +39,11 @@ a3f9c12  2026-06-09 10:22:11  山田
 | `get_commit_files.ps1` | Windows | 本体スクリプト |
 | `setup.ps1` | Windows | セットアップ本体 |
 | `setup.bat` | Windows | セットアップ起動用バッチ |
+| `uninstall.ps1` | Windows | アンインストール本体 |
+| `uninstall.bat` | Windows | アンインストール起動用バッチ |
 | `get_commit_files_mac.sh` | Mac | 本体スクリプト |
 | `setup_mac.sh` | Mac | セットアップスクリプト |
+| `uninstall_mac.sh` | Mac | アンインストールスクリプト |
 
 ---
 
@@ -48,7 +53,9 @@ a3f9c12  2026-06-09 10:22:11  山田
 
 1. `setup.bat` と `get_commit_files.ps1` を同じフォルダに置く
 2. `setup.bat` をダブルクリック
-3. 表示されたダイアログの手順に従いSourcetreeにカスタムアクションを登録する
+3. 言語を選択（日本語 / English）
+4. インストール先フォルダを選択（キャンセルで既定値 `ドキュメント\SourcetreeTools`）
+5. 表示されたダイアログの手順に従いSourcetreeにカスタムアクションを登録する
 
 **Sourcetreeへの登録内容**
 
@@ -70,13 +77,20 @@ a3f9c12  2026-06-09 10:22:11  山田
 chmod +x setup_mac.sh get_commit_files_mac.sh
 ```
 
-3. `setup_mac.sh` を実行する
+3. ダウンロードしたファイルの場合はquarantine属性を解除する（Gatekeeperでブロックされるため）
+
+```bash
+xattr -d com.apple.quarantine *.sh
+```
+
+4. `setup_mac.sh` を実行する
 
 ```bash
 ./setup_mac.sh
 ```
 
-4. 表示されたダイアログの手順に従いSourcetreeにカスタムアクションを登録する
+5. 言語を選択（日本語 / English）→ インストール先フォルダを選択（キャンセルで既定値 `~/Documents/SourcetreeTools`）
+6. 表示されたダイアログの手順に従いSourcetreeにカスタムアクションを登録する
 
 **Sourcetreeへの登録内容**
 
@@ -84,7 +98,24 @@ chmod +x setup_mac.sh get_commit_files_mac.sh
 |------|----|
 | メニューキャプション | `コミットのファイル一覧` |
 | スクリプトを開く | `/bin/bash` |
-| パラメーター | `~/Documents/SourcetreeTools/get_commit_files_mac.sh $REPO $SHA` |
+| パラメーター | `インストール先/get_commit_files_mac.sh $REPO $SHA` |
+
+---
+
+## アンインストール
+
+### Windows
+
+`uninstall.bat` をダブルクリック → 確認ダイアログで「はい」を選択
+
+### Mac
+
+```bash
+chmod +x uninstall_mac.sh
+./uninstall_mac.sh
+```
+
+> いずれもインストールしたスクリプトファイルのみ削除します。Sourcetreeのカスタムアクション登録は手動で削除してください（ツール/環境設定 → カスタムアクション）。
 
 ---
 

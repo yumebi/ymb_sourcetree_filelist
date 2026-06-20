@@ -1,5 +1,5 @@
 ﻿# get_commit_files.ps1
-# version: 1.0.0
+# version: 1.1.0
 param(
     [string]$RepoPath = ".",
     [string]$CommitHash = ""
@@ -13,6 +13,31 @@ $env:GIT_TERMINAL_PROMPT = "0"
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+
+# 言語設定読み込み（lang.txt: ja/en、なければja）
+$lang = "ja"
+$langFile = Join-Path $PSScriptRoot "lang.txt"
+if (Test-Path $langFile) {
+    $l = Get-Content $langFile -Raw -ErrorAction SilentlyContinue
+    if ($l) { $l = $l.Trim() }
+    if ($l -eq "en") { $lang = "en" }
+}
+
+$T = @{
+    ja = @{
+        ErrorTitle = "エラー"; NotFound = "コミットが見つかりません："
+        Count = "変更ファイル数"; Added = "追加"; Modified = "変更"; Deleted = "削除"; Renamed = "移動"; Other = "その他"
+        Close = "閉じる"; Clip = "※ファイル名をクリップボードにコピーしました"
+        Commit = "コミット"; Selected = "選択コミット数"; Valid = "有効"; Title = "コミット変更ファイル一覧"; Commits = "件のコミット"
+    }
+    en = @{
+        ErrorTitle = "Error"; NotFound = "Commit not found:"
+        Count = "Changed files"; Added = "Added"; Modified = "Modified"; Deleted = "Deleted"; Renamed = "Renamed"; Other = "Other"
+        Close = "Close"; Clip = "* File names copied to clipboard"
+        Commit = "Commit"; Selected = "Selected commits"; Valid = "valid"; Title = "Commit Changed Files"; Commits = " commits"
+    }
+}
+$S = $T[$lang]
 
 # ハッシュ未取得の場合は静かに終了
 $invalid = ($CommitHash -eq "") -or ($CommitHash -eq '$REFS') -or ($CommitHash -eq '$SHA')
@@ -29,7 +54,7 @@ foreach ($hash in $hashes) {
     $commitInfo = git -c i18n.logOutputEncoding=utf-8 log -1 --format="%h  %ai  %an%n%s" $hash 2>&1
     if ($LASTEXITCODE -ne 0) { continue }
     $validCount++
-    $commitSummaries += "コミット : $hash"
+    $commitSummaries += "$($S.Commit) : $hash"
     $commitSummaries += $commitInfo
     $commitSummaries += ""
 
@@ -59,8 +84,8 @@ foreach ($hash in $hashes) {
 
 if ($validCount -eq 0) {
     [System.Windows.Forms.MessageBox]::Show(
-        "コミットが見つかりません：`n$CommitHash",
-        "エラー", "OK", "Error"
+        "$($S.NotFound)`n$CommitHash",
+        $S.ErrorTitle, "OK", "Error"
     )
     exit
 }
@@ -76,24 +101,24 @@ $allFiles = @($added) + @($modified) + @($deleted) + @($renamed) + @($other) | S
 $count = $allFiles.Count
 
 $lines = @()
-if ($hashes.Count -gt 1) { $lines += "選択コミット数: $($hashes.Count)（有効: $validCount）"; $lines += "" }
+if ($hashes.Count -gt 1) { $lines += "$($S.Selected): $($hashes.Count) ($($S.Valid): $validCount)"; $lines += "" }
 $lines += $commitSummaries
-$lines += "変更ファイル数: $count"
+$lines += "$($S.Count): $count"
 $lines += ""
-if ($added)    { $lines += "=== 追加 ($($added.Count)) ===";       $lines += $added    | % { "  [追加] $_" }; $lines += "" }
-if ($modified) { $lines += "=== 変更 ($($modified.Count)) ===";    $lines += $modified | % { "  [変更] $_" }; $lines += "" }
-if ($deleted)  { $lines += "=== 削除 ($($deleted.Count)) ===";     $lines += $deleted  | % { "  [削除] $_" }; $lines += "" }
-if ($renamed)  { $lines += "=== リネーム ($($renamed.Count)) ==="; $lines += $renamed  | % { "  [移動] $_" }; $lines += "" }
-if ($other)    { $lines += "=== その他 ===";                        $lines += $other    | % { "  [　　] $_" }; $lines += "" }
+if ($added)    { $lines += "=== $($S.Added) ($($added.Count)) ===";    $lines += $added    | % { "  [$($S.Added)] $_" }; $lines += "" }
+if ($modified) { $lines += "=== $($S.Modified) ($($modified.Count)) ===";    $lines += $modified | % { "  [$($S.Modified)] $_" }; $lines += "" }
+if ($deleted)  { $lines += "=== $($S.Deleted) ($($deleted.Count)) ===";    $lines += $deleted  | % { "  [$($S.Deleted)] $_" }; $lines += "" }
+if ($renamed)  { $lines += "=== $($S.Renamed) ($($renamed.Count)) ===";    $lines += $renamed  | % { "  [$($S.Renamed)] $_" }; $lines += "" }
+if ($other)    { $lines += "=== $($S.Other) ===";    $lines += $other    | % { "  [ ] $_" }; $lines += "" }
 
 $message = $lines -join "`r`n"
 $plainList = ($allFiles | Where-Object { $_ }) -join "`r`n"
 Set-Clipboard -Value $plainList
 
-$titleHash = if ($hashes.Count -gt 1) { "$($hashes.Count)件のコミット" } else { $hashes[0] }
+$titleHash = if ($hashes.Count -gt 1) { "$($hashes.Count)$($S.Commits)" } else { $hashes[0] }
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "コミット変更ファイル一覧 — $titleHash"
+$form.Text = "$($S.Title) -- $titleHash"
 $form.Size = New-Object System.Drawing.Size(700, 560)
 $form.StartPosition = "CenterScreen"
 $form.TopMost = $true
@@ -112,12 +137,12 @@ $panel.Height = 40
 $panel.FlowDirection = "RightToLeft"
 
 $btnClose = New-Object System.Windows.Forms.Button
-$btnClose.Text = "閉じる"
+$btnClose.Text = $S.Close
 $btnClose.Width = 80
 $btnClose.Add_Click({ $form.Close() })
 
 $lbl = New-Object System.Windows.Forms.Label
-$lbl.Text = "※ファイル名をクリップボードにコピーしました"
+$lbl.Text = $S.Clip
 $lbl.AutoSize = $true
 $lbl.TextAlign = "MiddleLeft"
 $lbl.Padding = New-Object System.Windows.Forms.Padding(5, 0, 0, 0)
