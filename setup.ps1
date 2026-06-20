@@ -1,4 +1,5 @@
 ﻿# setup.ps1
+# version: 1.0.0
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 

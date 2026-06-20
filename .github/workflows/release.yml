@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Windows用zip作成
+        run: zip windows-tools.zip get_commit_files.ps1 setup.ps1 setup.bat
+
+      - name: Mac用zip作成
+        run: zip mac-tools.zip get_commit_files_mac.sh setup_mac.sh
+
+      - name: リリース作成
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            windows-tools.zip
+            mac-tools.zip
+          generate_release_notes: true

@@ -1,0 +1,47 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell構文チェック
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Filter *.ps1 -Recurse
+          $hasError = $false
+          foreach ($f in $files) {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              Write-Host "NG: $($f.Name)"
+              $errors | ForEach-Object { Write-Host $_.Message }
+              $hasError = $true
+            } else {
+              Write-Host "OK: $($f.Name)"
+            }
+          }
+          if ($hasError) { exit 1 }
+
+  lint-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash構文チェック
+        run: |
+          status=0
+          for f in $(find . -name "*.sh"); do
+            if bash -n "$f"; then
+              echo "OK: $f"
+            else
+              echo "NG: $f"
+              status=1
+            fi
+          done
+          exit $status

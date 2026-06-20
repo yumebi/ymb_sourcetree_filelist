@@ -1,4 +1,5 @@
 ﻿# get_commit_files.ps1
+# version: 1.0.0
 param(
     [string]$RepoPath = ".",
     [string]$CommitHash = ""
@@ -17,9 +18,46 @@ Add-Type -AssemblyName System.Drawing
 $invalid = ($CommitHash -eq "") -or ($CommitHash -eq '$REFS') -or ($CommitHash -eq '$SHA')
 if ($invalid) { exit }
 
-# コミット情報取得
-$commitInfo = git -c i18n.logOutputEncoding=utf-8 log -1 --format="%h  %ai  %an%n%s" $CommitHash 2>&1
-if ($LASTEXITCODE -ne 0) {
+# 複数コミット選択対応（$SHAはスペース区切りで複数渡る）
+$hashes = $CommitHash -split '\s+' | Where-Object { $_ }
+
+$commitSummaries = @()
+$added = @(); $modified = @(); $deleted = @(); $renamed = @(); $other = @()
+$validCount = 0
+
+foreach ($hash in $hashes) {
+    $commitInfo = git -c i18n.logOutputEncoding=utf-8 log -1 --format="%h  %ai  %an%n%s" $hash 2>&1
+    if ($LASTEXITCODE -ne 0) { continue }
+    $validCount++
+    $commitSummaries += "コミット : $hash"
+    $commitSummaries += $commitInfo
+    $commitSummaries += ""
+
+    # ファイル一覧取得（日本語ファイル名対応）
+    $fileList = git -c core.quotepath=false diff-tree --no-commit-id -r --name-status $hash 2>&1
+
+    # マージコミット対応：差分が空の場合は第1親との差分にフォールバック
+    if (-not ($fileList | Where-Object { $_ -match "^[AMDRC]" })) {
+        $fileList = git -c core.quotepath=false diff "${hash}^1" $hash --name-status 2>&1
+    }
+
+    foreach ($line in $fileList) {
+        if ($line -match "^([AMDRC])\d*\t(.+)$") {
+            $status = $Matches[1]; $file = $Matches[2]
+            switch ($status) {
+                "A" { $added    += $file }
+                "M" { $modified += $file }
+                "D" { $deleted  += $file }
+                "R" { $renamed  += $file }
+                default { $other += $file }
+            }
+        } elseif ($line -match "\S") {
+            $other += $line
+        }
+    }
+}
+
+if ($validCount -eq 0) {
     [System.Windows.Forms.MessageBox]::Show(
         "コミットが見つかりません：`n$CommitHash",
         "エラー", "OK", "Error"
@@ -27,38 +65,19 @@ if ($LASTEXITCODE -ne 0) {
     exit
 }
 
-# ファイル一覧取得（②日本語ファイル名対応）
-$fileList = git -c core.quotepath=false diff-tree --no-commit-id -r --name-status $CommitHash 2>&1
+# コミットをまたいで重複するファイルは1つにまとめる
+$added    = $added    | Select-Object -Unique
+$modified = $modified | Select-Object -Unique
+$deleted  = $deleted  | Select-Object -Unique
+$renamed  = $renamed  | Select-Object -Unique
+$other    = $other    | Select-Object -Unique
 
-# ①マージコミット対応：差分が空の場合は第1親との差分にフォールバック
-if (-not ($fileList | Where-Object { $_ -match "^[AMDRC]" })) {
-    $fileList = git -c core.quotepath=false diff "${CommitHash}^1" $CommitHash --name-status 2>&1
-}
-
-$added = @(); $modified = @(); $deleted = @(); $renamed = @(); $other = @()
-
-foreach ($line in $fileList) {
-    if ($line -match "^([AMDRC])\d*\t(.+)$") {
-        $status = $Matches[1]; $file = $Matches[2]
-        switch ($status) {
-            "A" { $added    += $file }
-            "M" { $modified += $file }
-            "D" { $deleted  += $file }
-            "R" { $renamed  += $file }
-            default { $other += $file }
-        }
-    } elseif ($line -match "\S") {
-        $other += $line
-    }
-}
-
-$allFiles = @($added) + @($modified) + @($deleted) + @($renamed) + @($other)
+$allFiles = @($added) + @($modified) + @($deleted) + @($renamed) + @($other) | Select-Object -Unique
 $count = $allFiles.Count
 
 $lines = @()
-$lines += "コミット : $CommitHash"
-$lines += $commitInfo
-$lines += ""
+if ($hashes.Count -gt 1) { $lines += "選択コミット数: $($hashes.Count)（有効: $validCount）"; $lines += "" }
+$lines += $commitSummaries
 $lines += "変更ファイル数: $count"
 $lines += ""
 if ($added)    { $lines += "=== 追加 ($($added.Count)) ===";       $lines += $added    | % { "  [追加] $_" }; $lines += "" }
@@ -71,8 +90,10 @@ $message = $lines -join "`r`n"
 $plainList = ($allFiles | Where-Object { $_ }) -join "`r`n"
 Set-Clipboard -Value $plainList
 
+$titleHash = if ($hashes.Count -gt 1) { "$($hashes.Count)件のコミット" } else { $hashes[0] }
+
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "コミット変更ファイル一覧 — $CommitHash"
+$form.Text = "コミット変更ファイル一覧 — $titleHash"
 $form.Size = New-Object System.Drawing.Size(700, 560)
 $form.StartPosition = "CenterScreen"
 $form.TopMost = $true
