@@ -1,6 +1,7 @@
 #!/bin/bash
 # get_commit_files_mac.sh
-# version: 1.1.0
+# version: 1.1.2
+VERSION="1.1.2"
 REPO_PATH="$1"
 COMMIT_HASH="$2"
 
@@ -70,7 +71,8 @@ ALL_FILES_DEDUP=$(printf "%b" "$ALL_FILES" | awk 'NF && !seen[$0]++')
 COUNT=0
 [ -n "$ALL_FILES_DEDUP" ] && COUNT=$(echo "$ALL_FILES_DEDUP" | grep -c ".")
 
-MSG="${T_CLIP}\n"
+MSG="ymb_sourcetree_filelist v${VERSION}\n"
+MSG="${MSG}${T_CLIP}\n"
 MSG="${MSG}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
 [ "$HASH_COUNT" -gt 1 ] && MSG="${MSG}${T_SELECTED}: ${HASH_COUNT} (${T_VALID}: ${VALID_COUNT})\n\n"
 MSG="${MSG}$(printf "%b" "$SUMMARY")"

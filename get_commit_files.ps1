@@ -1,10 +1,11 @@
 ﻿# get_commit_files.ps1
-# version: 1.1.0
+# version: 1.1.2
 param(
     [string]$RepoPath = ".",
     [string]$CommitHash = ""
 )
 
+$Version = "1.1.2"
 Set-Location $RepoPath
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -118,7 +119,7 @@ Set-Clipboard -Value $plainList
 $titleHash = if ($hashes.Count -gt 1) { "$($hashes.Count)$($S.Commits)" } else { $hashes[0] }
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "$($S.Title) -- $titleHash"
+$form.Text = "$($S.Title) v$Version -- $titleHash"
 $form.Size = New-Object System.Drawing.Size(700, 560)
 $form.StartPosition = "WindowsDefaultLocation"
 $form.TopMost = $true
