@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.1 (2026-06-20)
+
+- Windows：複数コミット選択時に各ウィンドウがCenterScreenで重なり1個しか見えない不具合を修正（WindowsDefaultLocationでカスケード表示）
+- README：Sourcetreeは複数選択時コミットごとに別プロセスで実行する旨を明記（1コミット1ウィンドウ）
+
 ## v1.1.0 (2026-06-20)
 
 - 日本語 / English UI切り替えに対応（セットアップ時に選択、lang.txtで管理）

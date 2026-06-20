@@ -120,7 +120,7 @@ $titleHash = if ($hashes.Count -gt 1) { "$($hashes.Count)$($S.Commits)" } else {
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "$($S.Title) -- $titleHash"
 $form.Size = New-Object System.Drawing.Size(700, 560)
-$form.StartPosition = "CenterScreen"
+$form.StartPosition = "WindowsDefaultLocation"
 $form.TopMost = $true
 
 $textBox = New-Object System.Windows.Forms.TextBox
