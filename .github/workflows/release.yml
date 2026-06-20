@@ -2,6 +2,7 @@ name: Release
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
 
@@ -12,6 +13,23 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: バージョン取得
+        id: ver
+        run: |
+          VERSION=$(grep -m1 -oP '^## v\K[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: タグ作成（未作成の場合のみ）
+        if: github.ref == 'refs/heads/main'
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - name: Windows用zip作成
         run: zip windows-tools.zip get_commit_files.ps1 setup.ps1 setup.bat uninstall.ps1 uninstall.bat README.md LICENSE
@@ -19,9 +37,10 @@ jobs:
       - name: Mac用zip作成
         run: zip mac-tools.zip get_commit_files_mac.sh setup_mac.sh uninstall_mac.sh README.md LICENSE
 
-      - name: リリース作成
+      - name: リリース作成・更新
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.version }}
           files: |
             windows-tools.zip
             mac-tools.zip
