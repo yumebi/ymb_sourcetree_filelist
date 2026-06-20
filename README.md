@@ -1,6 +1,6 @@
 # ymb_sourcetree_filelist
 
-現在のバージョン: v1.1.0（[CHANGELOG](CHANGELOG.md) / [Releases](https://github.com/yumebi/ymb_sourcetree_filelist/releases)）
+最新版は [Releases](https://github.com/yumebi/ymb_sourcetree_filelist/releases) から取得してください（mainへのpush時にGitHub Actionsで自動更新）。変更履歴は [CHANGELOG](CHANGELOG.md) を参照。
 
 Sourcetreeのカスタムアクションとして登録する、コミット変更ファイル一覧表示ツールです。  
 コミット履歴で任意のコミットを右クリックするだけで、変更されたファイルの一覧をダイアログ表示します。  
