@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.4 (2026-06-20)
+
+- CI修正：macos-latestランナーにshellcheck未搭載のためlint-macが毎回失敗していた問題を修正（brewでインストール追加）
+
 ## v1.1.3 (2026-06-20)
 
 - mainへのpush時に自動でリリースを更新するよう変更（CHANGELOGの先頭バージョンからタグ自動作成→Release自動更新）

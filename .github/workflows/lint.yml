@@ -46,6 +46,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: shellcheckインストール
+        run: brew install shellcheck
       - name: Bash構文・shellcheckチェック
         run: |
           status=0
