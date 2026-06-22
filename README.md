@@ -1,16 +1,14 @@
 # ymb_sourcetree_filelist
 
-最新版は [Releases](https://github.com/yumebi/ymb_sourcetree_filelist/releases) から取得してください（mainへのpush時にGitHub Actionsで自動更新）。変更履歴は [CHANGELOG](CHANGELOG.md) を参照。
-
-Sourcetreeのカスタムアクションとして登録する、コミット変更ファイル一覧表示ツールです。  
-コミット履歴で任意のコミットを右クリックするだけで、変更されたファイルの一覧をダイアログ表示します。  
+Sourcetreeのカスタムアクションとして登録する、コミット変更ファイル一覧表示ツールです。
+コミット履歴で任意のコミットを右クリックするだけで、変更されたファイルの一覧をダイアログ表示します。
 表示と同時にファイル名をクリップボードにコピーします。
 
-UIは日本語 / English の切り替えに対応しています（セットアップ時に選択）。
+UIは日本語 / English の切り替えに対応しています（セットアップ時に選択）。変更履歴は [CHANGELOG](CHANGELOG.md) を参照。
 
 ---
 
-## 表示内容
+## 主な機能
 
 ```
 コミット : a3f9c12
@@ -32,18 +30,15 @@ a3f9c12  2026-06-09 10:22:11  山田
 
 ---
 
-## ファイル構成
+## 使い方
 
-| ファイル | OS | 用途 |
-|----------|----|------|
-| `get_commit_files.ps1` | Windows | 本体スクリプト |
-| `setup.ps1` | Windows | セットアップ本体 |
-| `setup.bat` | Windows | セットアップ起動用バッチ |
-| `uninstall.ps1` | Windows | アンインストール本体 |
-| `uninstall.bat` | Windows | アンインストール起動用バッチ |
-| `get_commit_files_mac.sh` | Mac | 本体スクリプト |
-| `setup_mac.sh` | Mac | セットアップスクリプト |
-| `uninstall_mac.sh` | Mac | アンインストールスクリプト |
+1. Sourcetreeのコミット履歴で確認したいコミットを**右クリック**（複数選択も可）
+2. `カスタムアクション` → `コミットのファイル一覧` を選択
+3. 変更ファイル一覧がダイアログに表示される
+4. ファイル名はクリップボードに自動コピーされる
+
+> コミットを選択せずに実行した場合は何も表示せず終了します。
+> 複数コミットを選択しても、Sourcetreeのカスタムアクションには**右クリックした1コミットのみ**が `$SHA` として渡されます（Sourcetree側の仕様上の制限）。複数コミットの内容をまとめて確認したい場合は、1つずつ右クリックして実行してください。
 
 ---
 
@@ -119,15 +114,29 @@ chmod +x uninstall_mac.sh
 
 ---
 
-## 使い方
+## 技術スタック
 
-1. Sourcetreeのコミット履歴で確認したいコミットを**右クリック**（複数選択も可）
-2. `カスタムアクション` → `コミットのファイル一覧` を選択
-3. 変更ファイル一覧がダイアログに表示される
-4. ファイル名はクリップボードに自動コピーされる
+| 用途 | 言語/ツール |
+|---|---|
+| Windows本体スクリプト | PowerShell 5.x |
+| Mac本体スクリプト | Bash (zsh環境でも動作) |
+| 配布形式 | スクリプト直接配布(外部依存ライブラリなし) |
+| CI/CD | GitHub Actions(mainへのpushで自動更新) |
 
-> コミットを選択せずに実行した場合は何も表示せず終了します。
-> 複数コミットを選択しても、Sourcetreeのカスタムアクションには**右クリックした1コミットのみ**が `$SHA` として渡されます（Sourcetree側の仕様上の制限）。複数コミットの内容をまとめて確認したい場合は、1つずつ右クリックして実行してください。
+---
+
+## プロジェクト構成
+
+| ファイル | OS | 用途 |
+|----------|----|------|
+| `get_commit_files.ps1` | Windows | 本体スクリプト |
+| `setup.ps1` | Windows | セットアップ本体 |
+| `setup.bat` | Windows | セットアップ起動用バッチ |
+| `uninstall.ps1` | Windows | アンインストール本体 |
+| `uninstall.bat` | Windows | アンインストール起動用バッチ |
+| `get_commit_files_mac.sh` | Mac | 本体スクリプト |
+| `setup_mac.sh` | Mac | セットアップスクリプト |
+| `uninstall_mac.sh` | Mac | アンインストールスクリプト |
 
 ---
 
@@ -140,6 +149,12 @@ chmod +x uninstall_mac.sh
 
 ---
 
+## ダウンロード
+
+最新版は [Releases](https://github.com/yumebi/ymb_sourcetree_filelist/releases) から取得してください（mainへのpush時にGitHub Actionsで自動更新）。
+
+---
+
 ## ライセンス
 
-MIT License © 2026 ymb
+[MIT License](LICENSE) © 2026 ymb
