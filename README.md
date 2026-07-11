@@ -121,7 +121,7 @@ chmod +x uninstall_mac.sh
 
 | 用途 | 言語/ツール |
 |---|---|
-| Windows本体スクリプト | PowerShell 5.x |
+| Windows本体スクリプト | PowerShell 7 (pwsh) 自動検出、無ければ5.1にフォールバック |
 | Mac本体スクリプト | Bash (zsh環境でも動作) |
 | 配布形式 | スクリプト直接配布(外部依存ライブラリなし) |
 | CI/CD | GitHub Actions(mainへのpushで自動更新) |
