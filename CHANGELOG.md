@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0 (2026-06-20)
+
+- Windows：PowerShell 7 (pwsh) を自動検出して優先使用、無ければ5.1にフォールバック
+- setup.ps1：検出したエンジンをSourcetree登録パラメーターの案内に反映
+- CI：lint-windowsにPowerShell 5.1互換性チェックを追加（pwshとの二重チェック）
+- README：pwsh導入案内を追加
+
 ## v1.1.4 (2026-06-20)
 
 - CI修正：macos-latestランナーにshellcheck未搭載のためlint-macが毎回失敗していた問題を修正（brewでインストール追加）

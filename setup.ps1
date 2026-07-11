@@ -1,5 +1,5 @@
 ﻿# setup.ps1
-# version: 1.1.0
+# version: 1.2.0
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -20,6 +20,9 @@ $T = @{
         CopyBtn = "パラメーターをコピー"; Copied = "コピーしました！"; CloseBtn = "閉じる"
         Title = "セットアップ完了"
         FolderPrompt = "インストール先フォルダを選択（キャンセルで既定値を使用）"
+        EngineDetected = "実行エンジン"
+        EnginePwsh = "PowerShell 7 (pwsh) を検出しました。こちらを使用します。"
+        EnginePs51 = "PowerShell 7 (pwsh) が見つかりません。Windows標準の PowerShell 5.1 を使用します。`n（pwshを導入すると文字化けが起きにくくなります。任意）"
     }
     en = @{
         NotFoundSrc = "get_commit_files.ps1 not found.`nPlace it in the same folder as setup.bat."
@@ -31,9 +34,18 @@ $T = @{
         CopyBtn = "Copy parameters"; Copied = "Copied!"; CloseBtn = "Close"
         Title = "Setup Complete"
         FolderPrompt = "Choose install folder (Cancel uses default)"
+        EngineDetected = "Execution engine"
+        EnginePwsh = "PowerShell 7 (pwsh) detected. It will be used."
+        EnginePs51 = "PowerShell 7 (pwsh) not found. Using Windows PowerShell 5.1 (built-in).`n(Installing pwsh reduces the chance of character encoding issues. Optional.)"
     }
 }
 $S = $T[$lang]
+
+# pwsh(PowerShell 7)が使えるか自動検出。無ければWindows標準のpowershell(5.1)にフォールバック
+$pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+$engine = if ($pwshCmd) { "pwsh" } else { "powershell" }
+$engineMsg = if ($pwshCmd) { $S.EnginePwsh } else { $S.EnginePs51 }
+[System.Windows.Forms.MessageBox]::Show($engineMsg, $S.EngineDetected, "OK", "Information") | Out-Null
 
 # インストール先フォルダ選択（キャンセル時は既定値）
 $defaultDest = "$env:USERPROFILE\Documents\SourcetreeTools"
@@ -64,6 +76,9 @@ if (-not (Test-Path $markerDir)) { New-Item -ItemType Directory -Path $markerDir
 Set-Content -Path "$markerDir\install_path.txt" -Value $destDir -Encoding UTF8 -NoNewline
 
 $param = "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$destFile`" `"`$REPO`" `"`$SHA`""
+
+# アンインストーラーが使用エンジンを判別できるよう記録
+Set-Content -Path "$markerDir\engine.txt" -Value $engine -Encoding ASCII -NoNewline
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text = $S.Title
@@ -98,7 +113,7 @@ $grid.ReadOnly              = $true
 $grid.RowHeadersVisible     = $false
 $grid.Font                  = New-Object System.Drawing.Font("Consolas", 9)
 $grid.Rows.Add($S.Caption, $S.CaptionVal) | Out-Null
-$grid.Rows.Add($S.OpenScript, "powershell") | Out-Null
+$grid.Rows.Add($S.OpenScript, $engine) | Out-Null
 $grid.Rows.Add($S.Param, $param) | Out-Null
 
 $lbl3 = New-Object System.Windows.Forms.Label

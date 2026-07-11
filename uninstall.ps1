@@ -1,5 +1,5 @@
 ﻿# uninstall.ps1
-# version: 1.1.0
+# version: 1.2.0
 Add-Type -AssemblyName System.Windows.Forms
 
 $langResult = [System.Windows.Forms.MessageBox]::Show(

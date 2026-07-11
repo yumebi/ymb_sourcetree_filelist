@@ -1,11 +1,11 @@
 ﻿# get_commit_files.ps1
-# version: 1.1.2
+# version: 1.2.0
 param(
     [string]$RepoPath = ".",
     [string]$CommitHash = ""
 )
 
-$Version = "1.1.2"
+$Version = "1.2.0"
 Set-Location $RepoPath
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

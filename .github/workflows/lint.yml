@@ -42,6 +42,24 @@ jobs:
           }
           if ($hasError) { exit 1 }
 
+      - name: Windows PowerShell 5.1 互換性チェック
+        shell: powershell
+        run: |
+          $files = Get-ChildItem -Filter *.ps1 -Recurse
+          $hasError = $false
+          foreach ($f in $files) {
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+              Write-Host "PS5.1 Parse NG: $($f.Name)"
+              $parseErrors | ForEach-Object { Write-Host $_.Message }
+              $hasError = $true
+            } else {
+              Write-Host "PS5.1 Parse OK: $($f.Name)"
+            }
+          }
+          if ($hasError) { exit 1 }
+
   lint-mac:
     runs-on: macos-latest
     steps:

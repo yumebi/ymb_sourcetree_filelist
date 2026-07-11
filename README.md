@@ -50,16 +50,19 @@ a3f9c12  2026-06-09 10:22:11  山田
 2. `setup.bat` をダブルクリック
 3. 言語を選択（日本語 / English）
 4. インストール先フォルダを選択（キャンセルで既定値 `ドキュメント\SourcetreeTools`）
-5. 表示されたダイアログの手順に従いSourcetreeにカスタムアクションを登録する
+5. 実行エンジンを自動検出（PowerShell 7 = `pwsh` があればそちら、無ければWindows標準の `powershell` 5.1）
+6. 表示されたダイアログの手順に従いSourcetreeにカスタムアクションを登録する
 
 **Sourcetreeへの登録内容**
 
 | 項目 | 値 |
 |------|----|
 | メニューキャプション | `コミットのファイル一覧` |
-| スクリプトを開く | `powershell` |
+| スクリプトを開く | `pwsh`（検出時）または `powershell`（5.1） |
 | パラメーター | `-WindowStyle Hidden -ExecutionPolicy Bypass -File "インストール先\get_commit_files.ps1" "$REPO" "$SHA"` |
 | バックグラウンドで実行する | チェックあり |
+
+> PowerShell 7 (pwsh) が入っていなくても動作します（Windows標準の5.1にフォールバック）。pwshを入れると文字コード周りのトラブルが起きにくくなります（任意・[インストールはこちら](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows)）。
 
 ---
 
@@ -144,7 +147,7 @@ chmod +x uninstall_mac.sh
 
 | OS | バージョン |
 |----|-----------|
-| Windows | Windows 11 / PowerShell 5.x |
+| Windows | Windows 11 / PowerShell 5.1 または PowerShell 7 (pwsh) |
 | Mac | macOS Sequoia / zsh・bash |
 
 ---
