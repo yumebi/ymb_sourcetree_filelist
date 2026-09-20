@@ -25,6 +25,14 @@ fi
 
 INSTALL_PATH=$(cat "$MARKER")
 
+# 意図しないパスの削除を防ぐため、インストール先のフォルダ名が "SourcetreeTools"
+# であることを確認する(マーカーの改ざんで任意パスが削除されるのを防ぐ)。
+BASE=$(basename "$INSTALL_PATH")
+if [ "$BASE" != "SourcetreeTools" ]; then
+    osascript -e "display dialog \"$T_NOMARKER\" with title \"$T_TITLE\" buttons {\"OK\"}"
+    exit 1
+fi
+
 CONFIRM=$(osascript -e "button returned of (display dialog \"$INSTALL_PATH\" with title \"$T_TITLE\" buttons {\"Cancel\", \"OK\"} default button \"OK\")")
 if [ "$CONFIRM" != "OK" ]; then
     exit 0

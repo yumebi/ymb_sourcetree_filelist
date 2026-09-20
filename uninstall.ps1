@@ -33,6 +33,21 @@ if (-not (Test-Path $markerFile)) {
 
 $installPath = (Get-Content $markerFile -Raw).Trim()
 
+if (-not $installPath) {
+    [System.Windows.Forms.MessageBox]::Show($S.NoMarker, $S.Title, "OK", "Warning")
+    exit 1
+}
+
+# 意図しないパスの削除を防ぐため、インストール先のフォルダ名が "SourcetreeTools"
+# であることを確認する(マーカーの改ざんで任意パスが削除されるのを防ぐ)。
+$expectedName = "SourcetreeTools"
+$leaf = Split-Path $installPath -Leaf
+if ($leaf -ne $expectedName) {
+    [System.Windows.Forms.MessageBox]::Show($S.NoMarker, $S.Title, "OK", "Warning")
+    exit 1
+}
+$installPath = [System.IO.Path]::GetFullPath($installPath)
+
 $confirm = [System.Windows.Forms.MessageBox]::Show(
     "$($S.Confirm)$installPath",
     $S.Title, "YesNo", "Warning"
